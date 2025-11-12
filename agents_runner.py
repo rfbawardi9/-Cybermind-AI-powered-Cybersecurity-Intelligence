@@ -124,7 +124,7 @@ def generate_report(threat_data: Dict, vuln_results: Dict, mitigation_plan: Dict
     width, height = letter
     y = height - 50
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(40, y, "Sybermind Report (AUTO)")
+    c.drawString(40, y, "Cybermind Report (AUTO)")
     y -= 30
 
     c.setFont("Helvetica", 10)
