@@ -1,9 +1,5 @@
 streamlit
-pypdf
 reportlab
 pandas
-openai>=1.0.0
-nbformat
-nbclient
-papermill
-
+openai
+matplotlib
