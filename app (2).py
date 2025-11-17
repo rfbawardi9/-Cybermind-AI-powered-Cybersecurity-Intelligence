@@ -493,25 +493,48 @@ OPENAI_MODEL = "gpt-4o-mini"
 
 def _get_openai_client():
     """
-    Returns an authenticated OpenAI client using either Streamlit secrets or environment variables.
+    Try to read OPENAI_API_KEY from:
+    1) st.secrets["OPENAI_API_KEY"]
+    2) os.environ["OPENAI_API_KEY"]
+    and show clear errors in the sidebar.
     """
     import os
     from openai import OpenAI
 
+    key = None
+    source = None
+
+    # 1) جرّبي secrets أول
     try:
         key = st.secrets["OPENAI_API_KEY"]
+        source = "Streamlit secrets"
     except Exception:
-        key = os.getenv("OPENAI_API_KEY")
+        key = None
 
+    # 2) لو ما لقي شيء في secrets → خذ من environment
     if not key:
-        st.error("⚠️ No OpenAI API key found. Please set it using os.environ or add secrets.toml file.")
+        key = os.getenv("OPENAI_API_KEY")
+        if key:
+            source = "environment variable"
+
+    # 3) لو لسا فاضي → رجّع خطأ واضح في الـ sidebar
+    if not key:
+        st.sidebar.error(
+            "❌ No OPENAI_API_KEY found.\n\n"
+            "Either add it to `.streamlit/secrets.toml` as:\n"
+            'OPENAI_API_KEY=\"sk-...\"\n'
+            "or set it in a Python cell using:\n"
+            'os.environ[\"OPENAI_API_KEY\"] = \"sk-...\"'
+        )
         return None
 
+    # 4) جرّب إنشاء الـ client
     try:
         client = OpenAI(api_key=key)
+        st.sidebar.success(f\"✅ CyberMind GPT connected via {source}.\")
         return client
     except Exception as e:
-        st.error(f"❌ Failed to initialize OpenAI client: {e}")
+        st.sidebar.error(f\"❌ Failed to initialize OpenAI client:\\n{e}\")
         return None
 
 AI_SYSTEM_ENRICH = (
