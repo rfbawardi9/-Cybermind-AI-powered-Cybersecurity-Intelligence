@@ -478,27 +478,52 @@ def detect_priority_from_question(q: str):
     return None
 
 def simple_qa(df, question):
-    """Tiny lexical Q&A over the loaded data."""
+    """
+    Fallback search when GPT is unavailable.
+    يفهم كلمات high / medium / low / critical ويصفّي النتائج عليها فقط.
+    """
     q = question.lower().strip()
     if not len(df):
         return "No data loaded yet."
+
+    # 1) نحدد إذا المستخدم ذكر نوع الـ priority في السؤال
+    prio = detect_priority_from_question(q)
+
+    if prio:
+        # فلترة الداتا على نفس الـ priority فقط
+        subset = df[df["priority"].str.lower() == prio.lower()].copy()
+    else:
+        # لو ما ذكر priority نستخدم كل الداتا
+        subset = df.copy()
+
+    if subset.empty:
+        return f"No records found for priority '{prio or 'any'}' in current filters."
+
+    # 2) نعمل scoring بسيط بالكلمات داخل الـ subset فقط
     scored = []
-    for _, r in df.iterrows():
+    for _, r in subset.iterrows():
         text = f"{r.get('title','')} {r.get('description','')}".lower()
         score = sum(1 for token in q.split() if token in text)
         if score > 0:
             scored.append((score, r))
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top = [r for _, r in scored[:3]] if scored else []
-    lines = ["Here’s what I found:"]
-    for r in top:
+
+    # 3) لو ما فيه matcheات بالكلمات → نرجع أول 3 عناصر من نفس الـ priority
+    if not scored:
+        top_records = subset.head(3).to_dict(orient="records")
+    else:
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_records = [r for _, r in scored[:3]]
+
+    # 4) نجهز النص المعروض في الـ sidebar
+    lines = [f"Here’s what I found (Priority = {prio or 'mixed'}):"]
+    for r in top_records:
         lines.append(
             f"- {r.get('cve_id','?')} — {r.get('priority','Unknown')}: "
             f"{(r.get('title') or r.get('description',''))[:80]}..."
         )
-    if not top:
-        lines.append("- No exact matches. Try another keyword.")
+
     return "\n".join(lines)
+
 
 # ───────── OpenAI enrichment & Ask-CyberMind GPT ─────────
 OPENAI_MODEL = "gpt-4o-mini"
