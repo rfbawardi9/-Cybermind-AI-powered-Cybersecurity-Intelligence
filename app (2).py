@@ -465,6 +465,18 @@ def make_pdf(df_in, filter_prio=None):
     return buf, filename
 
 # ───────── Simple lexical QA (fallback) ─────────
+def detect_priority_from_question(q: str):
+    q = q.lower()
+    if "critical" in q:
+        return "Critical"
+    if "high" in q:
+        return "High"
+    if "medium" in q or "meduim" in q:
+        return "Medium"
+    if "low" in q:
+        return "Low"
+    return None
+
 def simple_qa(df, question):
     """Tiny lexical Q&A over the loaded data."""
     q = question.lower().strip()
