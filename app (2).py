@@ -520,10 +520,10 @@ def _get_openai_client():
     # 3) لو لسا فاضي → رجّع خطأ واضح في الـ sidebar
     if not key:
         st.sidebar.error(
-            "❌ No OPENAI_API_KEY found.\n\n"
+            "No OPENAI_API_KEY found.\n\n"
             "Either add it to `.streamlit/secrets.toml` as:\n"
             'OPENAI_API_KEY=\"sk-...\"\n'
-            "or set it in a Python cell using:\n"
+            "or set it in Python using:\n"
             'os.environ[\"OPENAI_API_KEY\"] = \"sk-...\"'
         )
         return None
@@ -531,10 +531,10 @@ def _get_openai_client():
     # 4) جرّب إنشاء الـ client
     try:
         client = OpenAI(api_key=key)
-        st.sidebar.success(f\"✅ CyberMind GPT connected via {source}.\")
+        st.sidebar.success(f"CyberMind GPT connected via {source}.")
         return client
     except Exception as e:
-        st.sidebar.error(f\"❌ Failed to initialize OpenAI client:\\n{e}\")
+        st.sidebar.error(f"Failed to initialize OpenAI client:\n{e}")
         return None
 
 AI_SYSTEM_ENRICH = (
